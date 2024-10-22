@@ -31,7 +31,7 @@ CREATE TABLE NhanVien
 	ngaySinh	date,
 	ngayLamViec date,
 	diaChi		nvarchar(30),
-	dienThoai   char(11),
+	dienThoai   varchar(11) unique,
 	luongCoBan  money,
 	phuCap		money
 );
@@ -39,9 +39,7 @@ CREATE TABLE NhanVien
 --Tao bang DonDatHang--
 CREATE TABLE DonDatHang
 (
-	soHoaDon	   char(10) primary key,
-	maKHNo1		   char(10) foreign key references KhachHang(maKH),
-	maNVNo1		   char(10) foreign key references NhanVien(maNV),		
+	soHoaDon	   char(10) primary key,	
 	ngayDatHang    date,
 	ngayGiaoHang   date,
 	ngayChuyenHang date,
@@ -62,9 +60,9 @@ CREATE TABLE NhaCungCap
 	tenCongTy	 nvarchar(30),
 	tenGiaoDich  nvarchar(30),
 	diaChi		 nvarchar(30),
-	dienThoai	 char(11),
-	FAX			 char(11),
-	Email	     varchar(20)
+	dienThoai	 varchar(11) unique,
+	FAX			 char(10) unique,
+	Email	     varchar(20) unique
 );
 
 --Tao bang MatHang
@@ -72,8 +70,6 @@ CREATE TABLE MatHang
 (
 	maHang		char(10) primary key,
 	tenHang		nvarchar(20),
-	maCTNo1		char(10) foreign key references NhaCungCap(maCT),
-	maLHNo1		char(10) foreign key references LoaiHang(maLH),
 	soLuong		int,
 	donViTinh	nvarchar(10),
 	giaHang		money
@@ -92,24 +88,24 @@ CREATE TABLE ChiTietDatHang
 --1.	Thiết lập  mối quan hệ giữa các bảng.
 ALTER TABLE DonDatHang
 
-    add maKhachHang char(10) foreign key references KhachHang(maKH)
+    add KHNo char(10) foreign key references KhachHang(maKH)
 			    on delete cascade
 			    on update cascade,
-        maNhanVien char(10)  foreign key references  NhanVien(maNV)
+        NVNo char(10)  foreign key references  NhanVien(maNV)
 			    on delete cascade
 			    on update cascade;
 ALTER TABLE MatHang
-    add maCongTy char(10)  foreign key references NhaCungCap(maCongTy)
+    add CTNo char(10)  foreign key references NhaCungCap(maCT)
 			    on delete cascade
 			    on update cascade,
-        maLoaiHang char(10)  foreign key references LoaiHang(maLoaiHang)
+        LHNo char(10)  foreign key references LoaiHang(maLH)
 			    on delete cascade
 			    on update cascade;
 
 --2.	Bổ sung ràng buộc thiết lập giá trị mặc định bằng 1 cho cột SOLUONG  và bằng 0 cho cột MUCGIAMGIA trong bảng CHITIETDATHANG
 ALTER TABLE  ChiTietDatHang
     add constraint DF_ChiTietDatHang_soLuong default 1 for soLuong,
-        constraint DF_ChiTietDatHang_soLUong default 0 for mucGiamGia 
+        constraint DF_ChiTietDatHang_mucGiamGia default 0 for mucGiamGia 
 
 --3.	Bổ sung cho bảng DONDATHANG ràng buộc kiểm tra ngày giao hàng và ngày chuyển hàng phải sau hoặc bằng với ngày đặt hàng. 
 ALTER TABLE DonDatHang

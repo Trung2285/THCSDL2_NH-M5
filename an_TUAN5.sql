@@ -86,6 +86,7 @@ CREATE TABLE ChiTietDatHang
 	maHangNo1	char(10) foreign key references MatHang(maHang),
 	giaBan		money,
 	soLuong		int,
+<<<<<<< HEAD:TUAN5.sql
 	mucGiamGia  money
 );
 
@@ -120,3 +121,7 @@ ALTER TABLE NhanVien
     ADD CONSTRAINT CK_NHANVIEN_AGE CHECK (DATEDIFF(YEAR, ngaySinh, GETDATE()) BETWEEN 18 AND 60)
 
 
+=======
+	mucGiamGia  float
+);
+>>>>>>> 1300602112e7e08ecde3072b6c4fff7cd2928c11:an_TUAN5.sql

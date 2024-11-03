@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿-- Bổ sung câu lệnh if exists
 if exists (select * from sys.databases where name = 'CONGTACGIAOHANG')
 	begin
@@ -131,6 +132,8 @@ alter table CHITIETDATHANG
 --có thể làm việc trong công ty khi đủ 18 tuổi và không quá 60 tuổi
 ALTER TABLE NhanVien
 	ADD CONSTRAINT CK_NHANVIEN_AGE CHECK (DATEDIFF(YEAR, ngaySinh, ngayLamViec) BETWEEN 18 AND 60)
+=======
+>>>>>>> 41cec3d06a8bf4ffa0337395fd875fe90ed6c3ab
 
 set dateformat dmy
 --Thêm dữ liệu bảng KhachHang
@@ -222,6 +225,7 @@ update MatHang
 set soLuong = soLuong * 2
 where CTNo = N'CT0003';
 
+<<<<<<< HEAD
 --c) Cập nhật giá trị của trường NOIGIAOHANG trong bảng DONDATHANG bằng địa chỉ của
 --khách hàng đối với những đơn đặt hàng chưa xác định được nơi giao hàng (giá trị trường NOIGIAOHANG bằng NULL).
 update DonDatHang
@@ -229,3 +233,6 @@ set noiGiaoHang = KhachHang.diaChi
 from DonDatHang
 join KhachHang on	DonDatHang.KHNo = KhachHang.maKH
 where noiGiaoHang is null;
+=======
+
+>>>>>>> 41cec3d06a8bf4ffa0337395fd875fe90ed6c3ab

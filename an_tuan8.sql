@@ -8,8 +8,8 @@ where CTNo = N'CT0003';
 --khách hàng đối với những đơn đặt hàng chưa xác định được nơi giao hàng (giá trị trường NOIGIAOHANG bằng NULL).
 update DonDatHang
 set noiGiaoHang = (
-        						SELECT diaChi
-        						FROM KhachHang
-        						WHERE KhachHang.maKH = DonDatHang.KHNo
-					      )
+ 			SELECT diaChi
+        		FROM KhachHang
+        		WHERE KhachHang.maKH = DonDatHang.KHNo
+		  )
 where	 noiGiaoHang is null;

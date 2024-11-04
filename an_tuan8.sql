@@ -7,7 +7,9 @@ where CTNo = N'CT0003';
 --c) Cập nhật giá trị của trường NOIGIAOHANG trong bảng DONDATHANG bằng địa chỉ của
 --khách hàng đối với những đơn đặt hàng chưa xác định được nơi giao hàng (giá trị trường NOIGIAOHANG bằng NULL).
 update DonDatHang
-set noiGiaoHang = KhachHang.diaChi
-from DonDatHang
-join KhachHang on	DonDatHang.KHNo = KhachHang.maKH
-where noiGiaoHang is null;
+set noiGiaoHang = (
+        						SELECT diaChi
+        						FROM KhachHang
+        						WHERE KhachHang.maKH = DonDatHang.KHNo
+					      )
+where	 noiGiaoHang is null;

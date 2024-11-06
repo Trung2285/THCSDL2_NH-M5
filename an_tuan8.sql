@@ -1,5 +1,5 @@
 
---b) Tăng số lượng hàng của những mặt hàng do công ty VINAMILK cung cấp lên gấp đôi.
+--b) Tăng số lượng hàng của những mặt hàng do công ty VINAMILK cung cấp lên gấp đôi
 UPDATE NhaCungCap
 SET maCT = 'VNM'
 WHERE maCT = 'CT0001';

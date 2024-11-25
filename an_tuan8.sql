@@ -1,137 +1,14 @@
-﻿-- Bổ sung câu lệnh if exists
-if exists (select * from sys.databases where name = 'CONGTACGIAOHANG')
-	begin
-		use master
-		alter database CONGTACGIAOHANG set single_user with rollback immediate
-		drop database CONGTACGIAOHANG;
-	end
---tạo database Công tác giao hàng
-CREATE DATABASE CONGTACGIAOHANG
-GO
-USE CONGTACGIAOHANG
---Tao bang KhachHang--
-CREATE TABLE KhachHang
-(
-	maKH			char(10) primary key,
-	tenCongTy		nvarchar(30),
-	tenGiaoDich		nvarchar(30),
-	diaChi			nvarchar(30),
-	Email			varchar(20),
-	dienThoai		char(10),
-	FAX				char(10)
-);
---Tao bang NhanVien
-CREATE TABLE NhanVien
-(
-	maNV		char(10) primary key,
-	ho			nvarchar(10),
-	ten			nvarchar(15),
-	ngaySinh	date,
-	ngayLamViec date,
-	diaChi		nvarchar(30),
-	dienThoai   char(10),
-	luongCoBan  money,
-	phuCap		money
-);
---Tao bang DonDatHang--
-CREATE TABLE DonDatHang
-(
-	soHoaDon	   char(10) primary key,
-	KHNo		   char(10) ,
-	NVNo		   char(10) ,		
-	ngayDatHang    date,
-	ngayGiaoHang   date,
-	ngayChuyenHang date,
-	noiGiaoHang    nvarchar(20)
-);
---Tao bang LoaiHang
-CREATE TABLE LoaiHang
-(
-	maLH	char(10) primary key,
-	tenLH	nvarchar(20)
-);
---Tao bang NhaCungCap
-CREATE TABLE NhaCungCap
-(
-	maCT		 char(10) primary key,
-	tenCongTy	 nvarchar(30),
-	tenGiaoDich  nvarchar(30),
-	diaChi		 nvarchar(30),
-	dienThoai	 char(10),
-	FAX			 char(10),
-	Email	     varchar(20)
-);
---Tao bang MatHang
-CREATE TABLE MatHang
-(
-	maHang		char(10) primary key,
-	tenHang		nvarchar(20),
-	CTNo		char(10) ,
-	LHNo		char(10) ,
-	soLuong		int,
-	donViTinh	varchar(10),
-	giaHang		money
-);
---Tao bang ChiTietDatHang
 
-CREATE TABLE ChiTietDatHang
-(
-	HDNo		char(10)	,
-	MHNo		char(10)	,
-	giaBan		money,
-	soLuong		int,
-	mucGiamGia  float
-);
---1.	Thiết lập  mối quan hệ giữa các bảng.
--- Ràng buộc khóa ngoại cho bảng DonDatHang
-alter table DonDatHang
-	add constraint FK_DonDatHang_KHNo foreign key (KHNo) references KhachHang(MaKH)
-				on delete
-					cascade
-				on update
-                    cascade, 
-		constraint FK_DonDatHang_NVNo foreign key (NVNo) references NhanVien(MaNV)
-				on delete
-					cascade
-				on update 
-					cascade
--- Ràng buộc khóa ngoại cho bảng MatHang
-alter table MatHang
-    add constraint FK_DonDatHang_CTNo foreign key (CTNo)  references NhaCungCap(maCT)
-				on delete
-					cascade
-				on update
-                    cascade,
-        constraint FK_DonDatHang_LHNo foreign key (LHNo)  references LoaiHang(maLH)
-				on delete
-					cascade
-				on update
-                    cascade
--- Ràng buộc khóa ngoại cho bảng ChiTietDatHang
-alter table ChiTietDatHang
-	add constraint FK_ChiTietDatHang_HDNo foreign key (HDNo) references DonDatHang(soHoaDon)
-				on delete
-					cascade
-				on update
-                    cascade,
-		CONSTRAINT FK_ChiTietDatHang_MHNo foreign key (MHNo) references MatHang(maHang)
-				on delete
-					cascade
-				on update
-                    cascade  
+--b) Tăng số lượng hàng của những mặt hàng do công ty VINAMILK cung cấp lên gấp đôi
+UPDATE NhaCungCap
+SET maCT = 'VNM'
+WHERE maCT = 'CT0001';
 
---Bổ sung ràng buộc cho bảng DonDatHang kiểm tra ngày giao hàng và ngày chuyển hàng 
-ALTER TABLE DonDatHang
-	ADD CONSTRAINT CK_DonDatHang_Dates CHECK (ngayGiaoHang >= ngayDatHang AND ngayChuyenHang >= ngayDatHang);
---Bổ sung ràng buộc thiết lập giá trị mặc định bằng 1 cho cột SOLUONG  và bằng 0 cho cột MUCGIAMGIA trong bảng CHITIETDATHANG
-alter table CHITIETDATHANG
-    add constraint DF_CHITIETDATHANG_SOLUONG default 1 for soLuong,
-        constraint DF_CHITIETDATHANG_MUCGIAMGIA default 0 for mucGiamGia 
---Bổ sung ràng buộc cho bảng NHANVIEN để đảm bảo rằng một nhân viên chỉ 
---có thể làm việc trong công ty khi đủ 18 tuổi và không quá 60 tuổi
-ALTER TABLE NhanVien
-	ADD CONSTRAINT CK_NHANVIEN_AGE CHECK (DATEDIFF(YEAR, ngaySinh, ngayLamViec) BETWEEN 18 AND 60)
+UPDATE NhaCungCap
+SET tenCongTy = 'VINAMILK'
+WHERE tenCongTy = N'Nhà Cung Cấp A';
 
+<<<<<<< HEAD
 set dateformat dmy
 --Thêm dữ liệu bảng KhachHang
 INSERT INTO KhachHang (maKH, tenCongTy, tenGiaoDich, diaChi, Email, dienThoai, FAX) 
@@ -235,6 +112,8 @@ UPDATE NhaCungCap
 SET tenCongTy = N'VINAMILK'
 WHERE tenCongTy = N'Nhà Cung Cấp A';
 
+=======
+>>>>>>> 679dd96f7c1fc0c2df11bbd10e4f718f534f23a9
 UPDATE MatHang
 SET soLuong = soLuong * 2
 WHERE CTNo = 'VNM';
@@ -242,6 +121,7 @@ WHERE CTNo = 'VNM';
 --c) Cập nhật giá trị của trường NOIGIAOHANG trong bảng DONDATHANG bằng địa chỉ của
 --khách hàng đối với những đơn đặt hàng chưa xác định được nơi giao hàng (giá trị trường NOIGIAOHANG bằng NULL).
 update DonDatHang
+<<<<<<< HEAD
 set noiGiaoHang = KhachHang.diaChi
 from KhachHang
 where DonDatHang.KHNo=KhachHang.maKH and noiGiaoHang is null;
@@ -372,3 +252,11 @@ where	m.CTNo = n.maCT
 select m.maHang,m.tenHang,n.maCT,n.tenCongTy,n.tenGiaoDich 
 from MatHang m, NhaCungCap n
 where m.CTNo = n.maCT and n.tenCongTy = N'Việt Tiến'
+=======
+set noiGiaoHang = (
+ 			SELECT diaChi
+        		FROM KhachHang
+        		WHERE KhachHang.maKH = DonDatHang.KHNo
+		  )
+where	 noiGiaoHang is null;
+>>>>>>> 679dd96f7c1fc0c2df11bbd10e4f718f534f23a9

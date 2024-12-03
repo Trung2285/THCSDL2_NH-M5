@@ -129,6 +129,9 @@ alter table NhaCungCap
 		constraint CK_NhaCungCap_FAX			 check(FAX like '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
 
 --Trong bảng NhanVien, ràng buộc :
+--Mặc định cho phụ cấp là 0:
+alter table NhanVien
+    add constraint DK_NhanVien_PhuCap
 -- SDT có 10 hoặc 11 chữ số và duy nhất(không trùng)
 alter table NhanVien
 	add	constraint UQ_NhanVien_SDT			 unique(dienThoai),
@@ -143,6 +146,12 @@ alter table NhanVien
 alter table NhanVien
     add constraint CK_NhanVien_luongCoBan   check(luongCoBan >=0 ),
         constraint CK_NhanVien_phuCap       check(phuCap >=0 )
+
+----Trong bảng DonDatHang, ràng buộc :
+
+--ngày giao hàng >= ngày đặt hàng và ngày chuyển hàng >= ngày giao hàng
+alter table DonDatHang
+    add constraint CK_DonDatHang_Ngay check(ngayGiaoHang>=ngayDatHang and ngayChuyenHang >= ngayGiaoHang)
 
 ----Trong bảng MatHang, ràng buộc :
 
@@ -238,16 +247,16 @@ INSERT INTO NhanVien (maNV, ho, ten, ngaySinh, ngayLamViec, diaChi, dienThoai, l
 ('NV0010', N'Ly', N'Khoa', '1996-12-20', '2021-01-15', N'Nghệ An', '0912345679', 7900000, 500000);
 --thêm dữ liệu vào bảng LoaiHang
 INSERT INTO DonDatHang (soHoaDon, KHNo, NVNo, ngayDatHang, ngayGiaoHang, ngayChuyenHang, noiGiaoHang) VALUES
-('HD0001', 'KH0001', 'NV0001', '2023-10-10', '2023-10-12', null, N'Hà Nội'),
-('HD0002', 'KH0002', 'NV0002', '2023-10-11', '2023-10-13', null, N'Hồ Chí Minh'),
-('HD0003', 'KH0003', 'NV0003', '2023-10-12', '2023-10-14', null, N'Đà Nẵng'),
-('HD0004', 'KH0004', 'NV0004', '2023-10-13', '2023-10-15', null, N'Hải Phòng'),
+('HD0001', 'KH0001', 'NV0001', '2023-10-10', '2023-10-12', '2023-10-19', N'Hà Nội'),
+('HD0002', 'KH0002', 'NV0002', '2023-10-11', '2023-10-13', '2023-10-19', N'Hồ Chí Minh'),
+('HD0003', 'KH0003', 'NV0003', '2023-10-12', '2023-10-14', '2023-10-19', N'Đà Nẵng'),
+('HD0004', 'KH0004', 'NV0004', '2023-10-13', '2023-10-15', '2023-10-19', N'Hải Phòng'),
 ('HD0005', 'KH0005', 'NV0005', '2023-10-14', '2023-10-16', '2023-10-19', N'Cần Thơ'),
 ('HD0006', 'KH0006', 'NV0006', '2023-10-15', '2023-10-17', '2023-10-20', N'Vũng Tàu'),
 ('HD0007', 'KH0007', 'NV0007', '2023-10-16', '2023-10-18', '2023-10-21', N'Bình Dương'),
 ('HD0008', 'KH0008', 'NV0008', '2023-10-17', '2023-10-19', '2023-10-22', N'Đồng Nai'),
-('HD0009', 'KH0009', 'NV0009', '2023-10-18', '2023-10-20', '2023-10-23', null),
-('HD0010', 'KH0010', 'NV0010', '2023-10-19', '2023-10-21', '2023-10-24', null);
+('HD0009', 'KH0009', 'NV0009', '2023-10-18', '2023-10-20', '2023-10-23', N'Thanh Hóa'),
+('HD0010', 'KH0010', 'NV0010', '2023-10-19', '2023-10-21', '2023-10-24', N'Nghệ An');
 --Thêm dữ liệu vào bảng NhaCungCap
 INSERT INTO NhaCungCap (maCT, tenCongTy, tenGiaoDich, diaChi, dienThoai, FAX, Email) VALUES
 ('CT0001', N'Nhà Cung Cấp A', N'Giao Dịch A', N'Hà Nội', '0934567890', '0234567890', 'ncc1@cty.com'),
@@ -306,21 +315,9 @@ SET     ngayChuyenHang = ngayDatHang
 WHERE   ngayChuyenHang is null
  
 -- b) Tăng số lượng hàng của những mặt hàng do công ty VINAMILK cung cấp lên gấp đôi.
--- Cập nhật tên công ty thành vinamilk
-UPDATE NhaCungCap
-SET maCT = 'VNM'
-WHERE maCT = 'CT0001';
-
-UPDATE NhaCungCap
-SET tenCongTy = 'VINAMILK'
-WHERE tenCongTy = N'Nhà Cung Cấp A';
-
-UPDATE MatHang
-SET soLuong = soLuong * 2
-WHERE CTNo = 'VNM';
-
-
-
+update  MatHang
+set     soLuong = soLuong * 2
+where   CTNo = N'CT0003';
 
 --c) Cập nhật giá trị của trường NOIGIAOHANG trong bảng DONDATHANG bằng địa chỉ của-khách hàng đối với những đơn đặt hàng chưa xác định được nơi giao hàng (giá trị trường NOIGIAOHANG bằng NULL).
 			update DonDatHang
@@ -377,13 +374,133 @@ WHERE maNV NOT IN (
     FROM DonDatHang
     WHERE YEAR(ngayDatHang) = 2023)
 
-------------------------------------------------------------------------------------
----------------------------  TUẦN 10  -----------------------------------------------
-------------------------------------------------------------------------------------
---2>Loại hàng thực phẩm do công ty nào cung cấp và địa chỉ của các công ty đó là gì?
-select  l.*
-from    NhaCungCap c,LoaiHang l,MatHang m
-where   c.maCT = m.CTNo and l.maLH = m.LHNo and tenLH = N'Thực phẩm'
+--Trung
+--1.	Cho biết danh sách các đối tác cung cấp hàng cho công ty
+select  distinct  n.maCT,n.tenCongTy as [Tên công ty]
+from NhaCungCap n
+JOIN MatHang m
+ON n.maCT = m.CTNo
 
+--2.	Mã hàng, tên hàng và số lượng của các mặt hàng hiện có trong công ty.
+select maHang,tenHang,soLuong
+from MatHang
+where CTNo in (select maCT
+               from NhaCungCap)
+--3.	Họ tên và địa chỉ và năm bắt đầu làm việc của các nhân viên trong công ty
+select maNV,ho+' '+ten as [Họ tên],diaChi,
+YEAR(ngayLamViec) [Năm làm việc]
+from NhanVien
+--An
+--4.	Địa chỉ và điện thoại của nhà cung cấp có tên giao dịch [VINAMILK]  là gì?
+update NhaCungCap
+set tenGiaoDich = N'VINAMILK'
+where tenGiaoDich = N'Giao Dịch A'
 
+select maCT, diaChi , dienThoai
+from NhaCungCap
+where	tenGiaoDich = N'VINAMILK'
+--5.	Cho biết mã và tên của các mặt hàng có giá lớn hơn 100000 và số lượng hiện có ít hơn 50.
+select maHang , tenHang , giaHang , soLuong 
+from MatHang
+where giaHang > 100000 and soLuong < 50
 
+--6.	Cho biết mỗi mặt hàng trong công ty do ai cung cấp
+select m.maHang,m.tenHang,n.maCT as maBenCungCap,n.tenCongTy as benCungCap,n.tenGiaoDich 
+from MatHang m,NhaCungCap n
+where	m.CTNo = n.maCT
+--7.	Công ty [Việt Tiến] đã cung cấp những mặt hàng nào?
+select	  m.maHang,m.tenHang,n.maCT,n.tenCongTy,
+  n.tenGiaoDich
+from MatHang m, NhaCungCap n
+where m.CTNo = n.maCT and n.tenCongTy = N'Việt Tiến'
+--Phúc
+--8.	Loại hàng thực phẩm do những công ty nào cung cấp và địa chỉ của các công ty đó là gì?
+    SELECT 
+        distinct
+        NhaCungCap.tenCongTy, 
+        NhaCungCap.diaChi 
+    FROM 
+        MatHang , NhaCungCap, LoaiHang
+    WHERE 
+        MatHang.CTNo = NhaCungCap.maCT and MatHang.LHNo = LoaiHang.maLH 
+        and LoaiHang.tenLH = N'Thực phẩm';
+--9.	Những khách hàng nào (tên giao dịch) đã đặt mua mặt hàng Sữa hộp XYZ của công ty?
+SELECT 
+    	distinct,k.maKH,k.tenGiaoDich 
+FROM 
+    	ChiTietDatHang c, DonDatHang d, MatHang m, KhachHang k
+WHERE d.KHNo = k.maKH and m.maHang = c.MHNo and d.soHoaDon = c.HDNo and 
+    m.tenHang = N'Sữa hộp XYZ';
+
+--10.	Đơn đặt hàng số 1 do ai đặt và do nhân viên nào lập, thời gian và địa điểm giao hàng là ở đâu?
+SELECT 
+    	k.tenGiaoDich AS TenKhachHang, 
+    	n.ten AS TenNhanVien, 
+    	d.ngayDatHang, 
+    	d.noiGiaoHang 
+FROM DonDatHang d,KhachHang k, NhanVien n
+WHERE n.maNV = d.NVNo and k.maKH = d.KHNo and 
+    d.soHoaDon = 'HD0001';	
+--11.	Hãy cho biết số tiền lương mà công ty phải trả cho mỗi nhân viên là bao nhiêu (lương = lương cơ bản + phụ cấp).
+SELECT maNV, ho, ten, (luongCoBan + phuCap) AS TongLuong 
+FROM NhanVien;
+--Oanh
+--12.	Hãy cho biết có những khách hàng nào lại chính là đối tác cung cấp hàng của công ty (tức là có cùng tên giao dịch).
+update KhachHang
+set tenGiaoDich=N'Giao Dịch XXX'
+where tenGiaoDich=N'Giao Dịch J';
+
+SELECT kh.*, ncc.*
+FROM KhachHang kh
+INNER JOIN NhaCungCap ncc ON kh.tenGiaoDich = ncc.tenGiaoDich;
+--13.	Trong công ty có những nhân viên nào có cùng ngày sinh?
+update NhanVien
+set ngaySinh='1990-05-12'
+where maNV='NV0010';
+
+SELECT distinct,nv.*
+FROM NhanVien nv
+WHERE nv.ngaySinh IN (
+    SELECT ngaySinh
+    FROM NhanVien
+    GROUP BY ngaySinh
+    HAVING COUNT(*) > 1
+);
+--14.	Những đơn đặt hàng nào yêu cầu giao hàng ngay tại công ty đặt hàng và những đơn đó là của công ty nào?
+update DonDatHang 
+set noiGiaoHang=N'Hà Tĩnh'
+where DonDatHang.noiGiaoHang=N'Nghệ An'
+
+update DonDatHang 
+set noiGiaoHang=N'Quảng Trị'
+where DonDatHang.noiGiaoHang=N'Thanh Hóa'
+
+select ddh.*, ct.maCT, ct.tenCongTy, ct.diaChi
+from DonDatHang ddh, NhaCungCap ct, MatHang mh, ChiTietDatHang ctdh
+where ct.maCT=mh.CTNo and mh.maHang=ctdh.MHNo and ctdh.HDNo=ddh.soHoaDon and ddh.noiGiaoHang=ct.diaChi
+--Văn
+--15.	Cho biết tên công ty,  tên giao dịch, địa chỉ và điện thoại của các khách hàng và các nhà cung cấp hàng cho công ty.
+SELECT TENCONGTY AS [TÊN CÔNG TY], TENGIAODICH AS [TÊN GIAO DỊCH], diaChi, DIENTHOAI
+FROM KHACHHANG
+UNION
+	SELECT TENCONGTY, TENCONGTY AS [TÊN GIAO DỊCH], diaChi, DIENTHOAI
+	FROM NHACUNGCAP;
+--16.	Những mặt hàng nào chưa từng được khách hàng đặt mua?
+SELECT TENHANG, MAHANG 
+FROM MATHANG
+WHERE MAHANG NOT IN (
+        SELECT MAHANG 
+        FROM ChiTietDatHang
+);		
+--17.	Những nhân viên nào của công ty chưa từng lập bất kỳ một hoá đơn đặt hàng nào?
+SELECT HO + ' ' + TEN AS [HỌ TÊN], maNV 
+FROM NHANVIEN
+WHERE maNV NOT IN (
+        SELECT maNV 
+        FROM DONDATHANG);
+
+--18.	Những nhân viên nào của công ty có lương cơ bản cao nhất?
+SELECT HO + ' ' + TEN AS [HỌ TÊN], LUONGCOBAN
+FROM NHANVIEN
+WHERE LUONGCOBAN in (SELECT MAX(LUONGCOBAN) 
+	                  FROM NHANVIEN);

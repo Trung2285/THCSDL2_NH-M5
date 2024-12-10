@@ -1,4 +1,4 @@
-﻿-- Bổ sung câu lệnh if exists
+-- Bổ sung câu lệnh if exists
 if exists (select * from sys.databases where name = 'CONGTACGIAOHANG')
 	begin
 		use master
@@ -575,6 +575,7 @@ EXEC ThemMatHang
     @giaHang = 5000;
 
 --2.	Tạo thủ tục lưu trữ có chức năng thống kê tổng số lượng hàng bán được của một mặt hàng có mã bất kỳ 
+go
 --(mã mặt hàng cần thống kê là tham số của thủ tục).
 CREATE PROCEDURE ThongKeSoLuongHangBan
     @maHang CHAR(10)
@@ -668,6 +669,7 @@ VALUES ('HD0012', 'MH0001', 14500000, 100, 0.05);
 --4.2Khi cập nhật lại số lượng hàng được bán, kiểm tra số lượng hàng được cập nhật lại có phù hợp hay không 
 --(số lượng hàng bán ra không được vượt quá số lượng hàng hiện có và không được nhỏ hơn 1). 
 --Nếu dữ liệu hợp lệ thì giảm (hoặc tăng) số lượng hàng hiện có trong công ty, ngược lại thì huỷ bỏ thao tác cập nhật. 
+GO
 CREATE TRIGGER trg_UpdateChiTietDatHang
 ON ChiTietDatHang
 AFTER UPDATE
@@ -675,24 +677,25 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Kiểm tra số lượng hàng hợp lệ
+    -- Kiểm tra số lượng hàng cập nhật có hợp lệ không
     IF EXISTS (
         SELECT 1
-        FROM MatHang m
-        JOIN Inserted i ON m.maHang = i.MHNo
-        WHERE i.soLuong < 1 OR m.soLuong + (SELECT soLuong FROM Deleted WHERE MHNo = i.MHNo) < i.soLuong
+        FROM Inserted i
+        JOIN MatHang m ON i.MHNo = m.maHang
+        WHERE i.soLuong > m.soLuong OR i.soLuong < 1
     )
     BEGIN
-        RAISERROR('Cập nhật không hợp lệ. Số lượng hàng vượt quá giới hạn.', 16, 1);
+        RAISERROR('Số lượng hàng cập nhật không hợp lệ.', 16, 1);
         ROLLBACK TRANSACTION;
         RETURN;
     END
 
-    -- Cập nhật lại số lượng hàng hiện có
+    -- Điều chỉnh số lượng hàng hiện có trong bảng MatHang
     UPDATE MatHang
-    SET soLuong = soLuong - (i.soLuong - d.soLuong)
+    SET soLuong = m.soLuong - i.soLuong + d.soLuong
     FROM MatHang m
     JOIN Inserted i ON m.maHang = i.MHNo
     JOIN Deleted d ON m.maHang = d.MHNo;
 END;
 GO
+
